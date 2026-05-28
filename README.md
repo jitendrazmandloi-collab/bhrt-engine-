@@ -23,8 +23,7 @@ The engine guarantees:
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/bhrt-engine.git
-cd bhrt-engine
+ github.com/yourusername/bhrt-engine.git  →  github.com/jitendrazmandloi-collab/bhrt-engine.git 
 pip install -r requirements.txt
 ```
 
