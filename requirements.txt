@@ -1,0 +1,9 @@
+# BHRT Engine Dependencies
+# This engine uses only Python standard library -- no external packages required.
+# Python 3.8+ recommended.
+
+# Optional: for enhanced language detection
+# langdetect>=1.0.9
+
+# Optional: for testing
+# pytest>=7.0.0
