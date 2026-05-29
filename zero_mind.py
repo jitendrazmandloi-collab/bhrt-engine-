@@ -390,16 +390,18 @@ class ZeroMind:
             if clean in all_identity:
                 # This is identity — dissolve it
                 it = all_identity[clean]
-                context = tokens[max(0, i-3):min(len(tokens), i+4)]
+                ctx_start = max(0, i - 3)
+                context = tokens[ctx_start:min(len(tokens), i + 4)]
+                local_pos = i - ctx_start  # position within context slice, not global
 
                 replacement, confidence, strategy = self._generate_placeholder(
-                    token, context, it, i
+                    token, context, it, local_pos
                 )
 
                 dissolved_tokens.append(replacement)
 
                 # Compute structural embedding for this decision
-                embed = self._structural_embed(token, context, i)
+                embed = self._structural_embed(token, context, local_pos)
                 embed_key = f"{clean}|{replacement}"
                 self.structural_embeddings[embed_key] = embed.tolist()
 
