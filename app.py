@@ -252,9 +252,9 @@ tab1, tab2, tab3 = st.tabs(["Single Text", "Bulk CSV", "System"])
 # ══════════════════════════════════════════════════════
 with tab1:
     example_texts = {
-        "Hinglish (Personal)": "Me or meri gf dono sath me ghum rahe the or or ek bhalu dikh gya jo sex kre the vo bhi bhalu hum bhag gye fir",
-        "English (Professional)": "My name is Priya Sharma and I am 28 years old. I work as a project manager at a tech company in Bangalore. Yesterday, I had a terrible meeting with my client Mr. Gupta. My phone is +919876543210 and email is priya.s@email.com.",
+        "English (Professional)": "My name is Priya Sharma, 28 years old. I work as a project manager at a tech company in Bangalore. Yesterday I had a difficult meeting with client Mr. Gupta. My phone is +919876543210 and email is priya.s@email.com.",
         "Hinglish (Emotional)": "Main aaj bahut udaas hoon. Kal mujhe office mein gussa aaya tha. Mera boss ne mujhe daanta. Mujhe lagta hai main fail ho gaya. Mera phone 9876543210 hai.",
+        "Hinglish (Narrative)": "Hum dono sath ghum rahe the jab achanak ek janvar dikh gya. Hum wahan se nikal gaye. Bahut ajeeb experience tha.",
         "Custom": ""
     }
 
