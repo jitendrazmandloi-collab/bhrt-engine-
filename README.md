@@ -1,209 +1,144 @@
-# BHRT Identity Stripping Engine
+# 🖤 ZERO — BHRT Identity Stripping Engine v3.0
 
-> **"Pattern se identity hatao. Structure bachao."**
+> **Remove personal identity from text. Preserve structure. Self-training AI core.**
 
-A privacy-preserving text processing engine that strips personal identity from any text while preserving its semantic structure and behavioral patterns. Built for researchers, privacy engineers, and structural analysts who need to work with text data without exposing who wrote it.
-
----
-
-## What It Does
-
-| Input | Output |
-|-------|--------|
-| "My name is Rajesh and I felt devastated yesterday" | `[PRONOUN] [PRONOUN] [EMOTION] [TEMPORAL_PERSONAL]` + structural analysis |
-
-The engine guarantees:
-- **Identity removal**: `I(Z;I) -> 0` (mathematically irreversible)
-- **Structure preservation**: Semantic patterns, topics, and behavioral archetypes remain intact
-- **One-way transformation**: Original identity CANNOT be recovered
-- **Multilingual**: Supports English, Hindi, and Hinglish
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-green)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/UI-Streamlit-ff4b4b)](https://streamlit.io)
 
 ---
 
-## Installation
+## What is ZERO?
 
-```bash
- github.com/yourusername/bhrt-engine.git  →  github.com/jitendrazmandloi-collab/bhrt-engine.git 
-pip install -r requirements.txt
-```
+ZERO is a **hybrid identity stripping engine** that combines:
 
-Or install directly:
-```bash
-pip install .
-```
+- **Static Rule Engine** (regex, dictionaries, PII patterns)
+- **Silent Learning System** (co-occurrence patterns, context rules)
+- **ZERO Mind AI Core** (self-training neural system — no cloud, no API)
 
----
+Unlike traditional anonymization tools that add noise or use generic placeholders, ZERO **learns from every strip** to make increasingly intelligent decisions about what to remove and what to preserve.
 
-## Quick Start
+### Key Differentiators
 
-### Python API
-
-```python
-from bhrt_engine import process, to_json
-
-text = """
-My name is Rajesh Kumar and I am 32 years old.
-I work at a company in Mumbai.
-Yesterday, I had a terrible meeting with my client.
-"""
-
-result = process(text)
-
-# Print clean structure
-print(result.structure_text)
-# Output: "at a company in . had a with ."
-
-# Print behavioral pattern
-print(result.behavioral_pattern)
-# Output: "CONFLICT_PROFESSIONAL"
-
-# Full JSON
-print(to_json(result))
-```
-
-### Command Line
-
-```bash
-# Demo mode
-python bhrt_engine.py
-
-# Process your own text
-python bhrt_engine.py "Your text here with personal details"
-
-# From file
-python bhrt_engine.py < input.txt
-```
-
----
-
-## Output Format
-
-```json
-{
-  "structure_text": "Clean text with no identity",
-  "structure_tags": ["action:meeting", "domain:client"],
-  "semantic_vector": {"action_meeting": 1, "domain_client": 1},
-  "topic_distribution": {
-    "professional": 0.6,
-    "personal_emotion": 0.2,
-    "logistical": 0.1,
-    "financial": 0.1
-  },
-  "behavioral_pattern": "CONFLICT_PROFESSIONAL",
-  "identity_tokens_found": 12,
-  "identity_types_found": ["pronoun", "emotion", "name", "pii_location"],
-  "pii_types_removed": ["location", "age"],
-  "i_identity": 0.0,
-  "i_pattern": 0.85,
-  "i_noise": 0.02,
-  "privacy_score": 85.0,
-  "utility_score": 72.5,
-  "bhrt_score": 80.2,
-  "identity_hash": "a1b2c3d4...",
-  "salt_destroyed": true,
-  "vps_impossible": true,
-  "processing_id": "uuid-here"
-}
-```
+| Feature | Traditional Tools | ZERO |
+|---------|-------------------|------|
+| Approach | Static rules / Noise injection | **Behavioral + AI** |
+| Training | Pre-configured | **Self-training** |
+| Cloud Dependency | Required | **Zero** |
+| Hinglish Support | ❌ | **✅ Native** |
+| Structure Preservation | Low-Medium | **High (AI-aware)** |
+| Reversibility | Possible | **Impossible** |
+| Code Size | 100K+ lines | **~2K lines** |
 
 ---
 
 ## Architecture
 
 ```
-Input Text
-    |
-[Phase 1] Language Detection + Tokenization
-    |
-[Phase 2] Identity Detection (names, PII, emotions, pronouns)
-    |
-[Phase 3] Zenodo Projection (strip identity subspace)
-    |
-[Phase 4] Structure Extraction (semantic pattern)
-    |
-[Phase 5] Irreversibility Lock (HMAC + salt destruction)
-    |
-Output: {structure_vector, tags, metrics} -- NO identity recoverable
+┌─────────────────────────────────────────────────────────────┐
+│                    LAYER 3: ZERO MIND (AI Core)              │
+│    Self-training neural module — learns from every strip     │
+│    No external API, no cloud dependency, local evolution      │
+├─────────────────────────────────────────────────────────────┤
+│                 LAYER 2: BHRT ENGINE (Static + Learned)      │
+│    Static rules + Silent learned patterns + Context rules    │
+├─────────────────────────────────────────────────────────────┤
+│                  LAYER 1: STRUCTURE PRESERVER                │
+│    Semantic coherence, topic distribution, behavioral signal │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Detected Identity Categories
+## Installation
 
-| Category | Examples |
-|----------|----------|
-| **Pronouns** | I, me, my, main, mera, hum |
-| **Emotions** | sad, angry, dukhi, gussa, devastated |
-| **Names** | Rajesh Kumar, Mr. Sharma, Dr. Patel |
-| **PII** | Phone, email, Aadhaar, PAN, location, age, money |
-| **Subjective markers** | think, feel, believe, lagta, sochta |
-| **Temporal personal** | today, yesterday, aaj, kal, abhi |
+```bash
+git clone https://github.com/yourusername/zero-bhrt.git
+cd zero-bhrt
+pip install -r requirements.txt
+```
 
 ---
 
-## Behavioral Patterns Detected
+## Usage
 
-- `CONFLICT_PROFESSIONAL` -- Workplace disagreements, disputes
-- `GROWTH_LEARNING` -- Skill development, courses, improvement
-- `LEADERSHIP_EXECUTION` -- Team management, decision-making
-- `CRISIS_MANAGEMENT` -- Urgent problem-solving, critical fixes
-- `STAKEHOLDER_NEGOTIATION` -- Client deals, contract discussions
-- `GENERAL_UNSTRUCTURED` -- No clear pattern detected
+### Streamlit UI
+
+```bash
+streamlit run app.py
+```
+
+### Python API
+
+```python
+from bhrt_engine_v3 import process
+
+result = process("Main aaj bahut udaas hoon. Mera boss ne mujhe daanta.")
+
+print(result.structure_text)
+print(result.behavioral_pattern)
+print(result.privacy_score)
+print(result.zero_dissolved_text)  # AI-powered dissolution
+```
+
+### CLI
+
+```bash
+# Process text
+python bhrt_engine_v3.py "Your text here"
+
+# View stats
+python bhrt_engine_v3.py --stats
+
+# View ZERO Mind stats
+python bhrt_engine_v3.py --zero-stats
+
+# Export learned model
+python bhrt_engine_v3.py --export-model
+```
 
 ---
 
-## Privacy Guarantees
+## How ZERO Mind Learns
 
-1. **Irreversible**: HMAC with destroyed salt -- no reconstruction possible
-2. **Verifiable**: `identity_hash` proves processing occurred
-3. **Measurable**: `privacy_score` and `utility_score` quantify the trade-off
-4. **One-way**: Original text cannot be derived from output
+1. **Correlation Mapping**: Tracks which non-identity words consistently appear near identity tokens
+2. **Proxy Identity Detection**: Words that correlate strongly become flagged as "proxy identities"
+3. **Replacement Scoring**: Every replacement strategy is scored by structure preservation
+4. **Confidence Calibration**: High-scoring strategies are reused; low-scoring ones decay
+5. **Structural Embeddings**: 64-dimensional position-aware embeddings for context understanding
 
----
-
-## Use Cases
-
-- **Privacy-preserving NLP**: Train models on de-identified text
-- **Behavioral research**: Study patterns without exposing individuals
-- **HR Analytics**: Analyze employee feedback anonymously
-- **Therapy/Coaching**: Strip client identity, retain structural insights
-- **Data Marketplaces**: Sell structural insights, not personal data
+All learning is **local** — no data leaves your machine.
 
 ---
 
-## Contributing
+## File Structure
 
-This is a structural tool, not a personality. Issues and PRs welcome.
+```
+zero-bhrt/
+├── app.py                 # Streamlit UI (v3.0)
+├── bhrt_engine_v3.py      # Main engine (Static + ZERO integration)
+├── zero_mind.py           # AI Core (self-training neural system)
+├── requirements.txt       # Dependencies
+├── README.md             # This file
+├── bhrt_memory.json      # BHRT learned patterns (auto-generated)
+└── zero_mind.json        # ZERO Mind memory (auto-generated)
+```
 
 ---
 
-## Author
+## Market Context
 
-**J.B.S. Mandloi** -- Creator of the Black Heart structural framework
-
-> *"This engine is not written to represent a person. It is written to remove one."*
-
-:black_heart:
+- **Differential Privacy Market**: $1.34B (2024) → $13B+ (2033)
+- **Privacy-Preserving AI**: $39B by 2035
+- **DPDP Act 2023**: India mandates data anonymization
+- **Gap**: No existing tool handles behavioral identity + Hinglish + self-training
 
 ---
 
 ## License
-Apache License
-Version 2.0, January 2004
-http://www.apache.org/licenses/
 
-Copyright 2026 J.B.S. Mandloi
+Apache 2.0 — J.B.S. Mandloi
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+---
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-(LICENSE) file.
+> *"Those who understand require no mention. Those who do not would not benefit from one."*

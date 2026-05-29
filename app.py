@@ -5,10 +5,10 @@ import pandas as pd
 import json
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from bhrt_engine_v2 import process, to_json, get_memory_stats
+from bhrt_engine_v3 import process, to_json, get_memory_stats, get_zero_evolution, export_zero_model
 
 st.set_page_config(
-    page_title="BHRT Engine v2.0",
+    page_title="ZERO — BHRT Engine v3.0",
     page_icon="🖤",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -23,18 +23,14 @@ st.markdown("""
         font-family: 'Sora', sans-serif;
     }
 
-    /* Hide Streamlit chrome */
     #MainMenu, footer, header { visibility: hidden; }
     .block-container { padding: 0.5rem 2rem 4rem 2rem; max-width: 1100px; margin: auto; }
     section[data-testid="stSidebar"] { display: none !important; }
-    /* Remove default top gap */
     div[data-testid="stAppViewContainer"] > section > div:first-child { padding-top: 0 !important; }
     .stApp > header { height: 0 !important; }
 
-    /* Typography */
     h1, h2, h3, h4, p, label, div { color: #e8e8e8 !important; }
 
-    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         background: transparent;
         border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -58,7 +54,6 @@ st.markdown("""
     }
     .stTabs [data-baseweb="tab-highlight"] { display: none; }
 
-    /* Textarea */
     .stTextArea textarea {
         background: rgba(255,255,255,0.03) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
@@ -74,7 +69,6 @@ st.markdown("""
         box-shadow: none !important;
     }
 
-    /* Selectbox */
     .stSelectbox > div > div {
         background: rgba(255,255,255,0.03) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
@@ -82,7 +76,6 @@ st.markdown("""
         color: #e0e0e0 !important;
     }
 
-    /* Button */
     .stButton > button {
         background: #e8e8e8 !important;
         color: #080808 !important;
@@ -98,7 +91,6 @@ st.markdown("""
     }
     .stButton > button:hover { opacity: 0.82 !important; }
 
-    /* Download button */
     .stDownloadButton > button {
         background: transparent !important;
         color: rgba(255,255,255,0.5) !important;
@@ -113,7 +105,6 @@ st.markdown("""
         color: rgba(255,255,255,0.8) !important;
     }
 
-    /* Metric */
     [data-testid="stMetric"] { background: transparent; }
     [data-testid="stMetricValue"] {
         font-family: 'DM Mono', monospace !important;
@@ -127,13 +118,9 @@ st.markdown("""
         letter-spacing: 0.08em;
     }
 
-    /* Progress */
     .stProgress > div > div > div { background: #e8e8e8 !important; }
-
-    /* Dataframe */
     .stDataFrame { border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; }
 
-    /* Expander */
     .streamlit-expanderHeader {
         background: rgba(255,255,255,0.02) !important;
         border: 1px solid rgba(255,255,255,0.06) !important;
@@ -142,7 +129,6 @@ st.markdown("""
         font-size: 12px;
     }
 
-    /* Card */
     .card {
         background: rgba(255,255,255,0.025);
         border: 1px solid rgba(255,255,255,0.07);
@@ -151,7 +137,6 @@ st.markdown("""
         margin: 8px 0;
     }
 
-    /* Output text box */
     .output-text {
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(255,255,255,0.07);
@@ -163,7 +148,6 @@ st.markdown("""
         color: rgba(255,255,255,0.75);
     }
 
-    /* Label */
     .label {
         display: inline-block;
         font-family: 'DM Mono', monospace;
@@ -177,7 +161,6 @@ st.markdown("""
         letter-spacing: 0.03em;
     }
 
-    /* Pattern badge */
     .pattern-badge {
         display: inline-block;
         font-family: 'DM Mono', monospace;
@@ -188,14 +171,12 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
 
-    /* Section divider */
     .sect-divider {
         height: 1px;
         background: rgba(255,255,255,0.06);
         margin: 32px 0;
     }
 
-    /* Stat row */
     .stat-number {
         font-family: 'DM Mono', monospace;
         font-size: 2.4rem;
@@ -211,7 +192,6 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* Score bar */
     .score-track {
         background: rgba(255,255,255,0.06);
         border-radius: 4px;
@@ -224,6 +204,28 @@ st.markdown("""
         border-radius: 4px;
         background: #e8e8e8;
     }
+
+    /* ZERO-specific styles */
+    .zero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: 0.08em;
+    }
+
+    .zero-decision-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .zero-decision-row:last-child { border-bottom: none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -233,14 +235,15 @@ st.markdown("""
 st.markdown("""
 <div style="padding: 20px 0 24px 0;">
     <div style="display: flex; align-items: baseline; gap: 12px;">
-        <span style="font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 0.12em; text-transform: uppercase;">BHRT ENGINE</span>
-        <span style="font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.15);">v2.0</span>
+        <span style="font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 0.12em; text-transform: uppercase;">ZERO</span>
+        <span style="font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.15);">v3.0</span>
+        <span class="zero-badge">BHRT + AI</span>
     </div>
     <h1 style="font-size: 2.2rem; font-weight: 700; margin: 6px 0 0 0; letter-spacing: -0.03em; color: #e8e8e8 !important;">
         Behavioral Identity Stripping
     </h1>
     <p style="color: rgba(255,255,255,0.3) !important; font-size: 13px; margin: 6px 0 0 0; font-weight: 300;">
-        Remove personal identity from text. Preserve structure and behavioral signal.
+        Remove personal identity from text. Preserve structure. Self-training AI core.
     </p>
 </div>
 <div class="sect-divider"></div>
@@ -249,7 +252,7 @@ st.markdown("""
 # ══════════════════════════════════════════════════════
 #  TABS
 # ══════════════════════════════════════════════════════
-tab1, tab2, tab3 = st.tabs(["Single Text", "Bulk CSV", "System"])
+tab1, tab2, tab3, tab4 = st.tabs(["Single Text", "Bulk CSV", "ZERO Mind", "System"])
 
 # ══════════════════════════════════════════════════════
 #  TAB 1: SINGLE TEXT
@@ -276,15 +279,16 @@ with tab1:
         placeholder="Yahan apna text paste karo..."
     )
 
-    st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-    col_btn, _ = st.columns([1, 4])
+    # ZERO toggle
+    col_toggle, col_btn, _ = st.columns([1, 1, 3])
+    with col_toggle:
+        use_zero = st.toggle("ZERO Mind", value=True, help="Enable AI-powered identity dissolution")
     with col_btn:
         run = st.button("Process", key="single_run")
 
     if run and user_text.strip():
         with st.spinner(""):
-            result = process(user_text)
+            result = process(user_text, use_zero=use_zero)
 
         st.markdown("<div class='sect-divider'></div>", unsafe_allow_html=True)
 
@@ -294,6 +298,12 @@ with tab1:
             st.markdown(f"<div class='output-text'>{result.structure_text}</div>", unsafe_allow_html=True)
         else:
             st.markdown("<div class='output-text' style='color:rgba(255,255,255,0.2);font-style:italic;'>No structure remaining — text was fully identity.</div>", unsafe_allow_html=True)
+
+        # ZERO Dissolved Text
+        if use_zero and result.zero_dissolved_text:
+            st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:8px;'>ZERO Dissolved <span class='zero-badge'>AI</span></p>", unsafe_allow_html=True)
+            st.markdown(f"<div class='output-text' style='border-color:rgba(255,255,255,0.12);'>{result.zero_dissolved_text}</div>", unsafe_allow_html=True)
 
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
 
@@ -319,7 +329,7 @@ with tab1:
         st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
         # ── Identity Removed ─────────────────────────────
-        c4, c5 = st.columns([1, 2])
+        c4, c5, c6 = st.columns([1, 1, 1])
         with c4:
             st.markdown(f"""
             <div class="card" style="text-align:center;">
@@ -329,6 +339,13 @@ with tab1:
             """, unsafe_allow_html=True)
         with c5:
             st.markdown(f"""
+            <div class="card" style="text-align:center;">
+                <div class="stat-number" style="color:#e8e8e8;">{result.zero_proxy_found}</div>
+                <div class="stat-label">ZERO proxies</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c6:
+            st.markdown(f"""
             <div class="card">
                 <div class="stat-label" style="margin-bottom:10px;">Behavioral Pattern</div>
                 <span class="pattern-badge" style="background:rgba(255,255,255,0.06); color:#e8e8e8;">{result.behavioral_pattern}</span>
@@ -336,6 +353,28 @@ with tab1:
             """, unsafe_allow_html=True)
 
         st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+
+        # ── ZERO Decisions ───────────────────────────────
+        if use_zero and result.zero_decisions:
+            st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:12px;'>ZERO Decisions <span class='zero-badge'>AI</span></p>", unsafe_allow_html=True)
+            for dec in result.zero_decisions[:5]:
+                st.markdown(f"""
+                <div class="zero-decision-row">
+                    <div>
+                        <span style="color:rgba(255,255,255,0.3); font-family:'DM Mono',monospace; font-size:12px;">{dec['original']}</span>
+                        <span style="color:rgba(255,255,255,0.15); margin:0 8px;">→</span>
+                        <span style="color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; font-size:12px;">{dec['replacement']}</span>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span class="label">{dec['strategy']}</span>
+                        <span style="font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.3);">{dec['confidence']:.0%}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            if len(result.zero_decisions) > 5:
+                st.markdown(f"<p style='color:rgba(255,255,255,0.2); font-size:11px;'>+{len(result.zero_decisions)-5} more decisions</p>", unsafe_allow_html=True)
+
+            st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
         # ── Topic Distribution ───────────────────────────
         st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:12px;'>Topic Distribution</p>", unsafe_allow_html=True)
@@ -380,6 +419,10 @@ with tab1:
                 <div class="stat-label">Language</div>
                 <div style="font-family:'DM Mono',monospace; font-size:12px; color:rgba(255,255,255,0.5); margin-top:4px;">{result.language_detected}</div>
             </div>
+            <div>
+                <div class="stat-label">ZERO Mind</div>
+                <div style="font-family:'DM Mono',monospace; font-size:12px; color:rgba(255,255,255,0.5); margin-top:4px;">{'Active' if use_zero else 'Disabled'}</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -402,6 +445,11 @@ with tab1:
                 "vps_impossible": result.vps_impossible,
                 "processing_id": result.processing_id,
                 "language_detected": result.language_detected,
+                "zero_dissolved_text": result.zero_dissolved_text,
+                "zero_structure_score": result.zero_structure_score,
+                "zero_identity_score": result.zero_identity_score,
+                "zero_proxy_found": result.zero_proxy_found,
+                "zero_evolution": result.zero_evolution,
             })
 
     elif run and not user_text.strip():
@@ -415,7 +463,7 @@ with tab2:
     st.markdown("""
     <div style="padding: 24px 0 16px 0;">
         <p style="color:rgba(255,255,255,0.35); font-size:13px; margin:0;">
-            CSV upload karo — batch processing with full output.
+            CSV upload karo — batch processing with ZERO Mind.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -455,7 +503,9 @@ with tab2:
                 with col_s:
                     selected_col = st.selectbox("Column:", text_columns, label_visibility="collapsed")
 
-                col_rb, _ = st.columns([1, 4])
+                col_zero, col_rb, _ = st.columns([1, 1, 3])
+                with col_zero:
+                    use_zero_bulk = st.toggle("ZERO Mind", value=True)
                 with col_rb:
                     run_bulk = st.button(f"Process {len(df)} rows", key="bulk_run")
 
@@ -467,25 +517,30 @@ with tab2:
                     for idx, row in df.iterrows():
                         text = str(row[selected_col])
                         if text and text != 'nan':
-                            r = process(text)
+                            r = process(text, use_zero=use_zero_bulk)
                             results.append({
                                 'original_text': text,
                                 'structure_text': r.structure_text,
+                                'zero_dissolved': r.zero_dissolved_text,
                                 'behavioral_pattern': r.behavioral_pattern,
                                 'privacy_score': r.privacy_score,
                                 'utility_score': r.utility_score,
                                 'bhrt_score': r.bhrt_score,
                                 'identity_tokens_found': r.identity_tokens_found,
+                                'zero_proxy_found': r.zero_proxy_found,
                                 'identity_types_found': ', '.join(r.identity_types_found),
                                 'pii_types_removed': ', '.join(r.pii_types_removed) if r.pii_types_removed else '',
                                 'language_detected': r.language_detected,
                                 'processing_id': r.processing_id,
                             })
                         else:
-                            results.append({'original_text': text, 'structure_text': '', 'behavioral_pattern': 'EMPTY',
+                            results.append({'original_text': text, 'structure_text': '', 
+                                            'zero_dissolved': '', 'behavioral_pattern': 'EMPTY',
                                             'privacy_score': 0, 'utility_score': 0, 'bhrt_score': 0,
-                                            'identity_tokens_found': 0, 'identity_types_found': '',
-                                            'pii_types_removed': '', 'language_detected': 'unknown', 'processing_id': ''})
+                                            'identity_tokens_found': 0, 'zero_proxy_found': 0,
+                                            'identity_types_found': '',
+                                            'pii_types_removed': '', 'language_detected': 'unknown', 
+                                            'processing_id': ''})
 
                         progress.progress(min((idx + 1) / len(df), 1.0))
                         status.markdown(f"<p style='color:rgba(255,255,255,0.3);font-size:12px;'>Row {idx + 1} / {len(df)}</p>", unsafe_allow_html=True)
@@ -496,11 +551,12 @@ with tab2:
                     results_df = pd.DataFrame(results)
                     st.markdown("<div class='sect-divider'></div>", unsafe_allow_html=True)
 
-                    c1, c2, c3, c4 = st.columns(4)
+                    c1, c2, c3, c4, c5 = st.columns(5)
                     with c1: st.metric("Avg Privacy", f"{results_df['privacy_score'].mean():.0f}")
                     with c2: st.metric("Avg Utility", f"{results_df['utility_score'].mean():.0f}")
                     with c3: st.metric("Avg BHRT", f"{results_df['bhrt_score'].mean():.0f}")
                     with c4: st.metric("Top Pattern", results_df['behavioral_pattern'].value_counts().index[0])
+                    with c5: st.metric("ZERO Proxies", f"{results_df['zero_proxy_found'].sum()}")
 
                     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
                     st.dataframe(results_df, use_container_width=True)
@@ -508,19 +564,85 @@ with tab2:
                     c_dl1, c_dl2, _ = st.columns([1, 1, 3])
                     with c_dl1:
                         st.download_button("Download Full", data=results_df.to_csv(index=False).encode('utf-8'),
-                                           file_name='bhrt_processed.csv', mime='text/csv')
+                                           file_name='zero_processed.csv', mime='text/csv')
                     with c_dl2:
-                        summary = results_df[['structure_text','behavioral_pattern','privacy_score','bhrt_score']]
+                        summary = results_df[['structure_text','zero_dissolved','behavioral_pattern','privacy_score','bhrt_score']]
                         st.download_button("Download Summary", data=summary.to_csv(index=False).encode('utf-8'),
-                                           file_name='bhrt_summary.csv', mime='text/csv')
+                                           file_name='zero_summary.csv', mime='text/csv')
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
 
+
 # ══════════════════════════════════════════════════════
-#  TAB 3: SYSTEM
+#  TAB 3: ZERO MIND
 # ══════════════════════════════════════════════════════
 with tab3:
+    st.markdown("""
+    <div style="padding: 24px 0 16px 0;">
+        <p style="color:rgba(255,255,255,0.35); font-size:13px; margin:0;">
+            ZERO Mind evolution, learning state, and model management.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    try:
+        zero_stats = get_zero_evolution()
+
+        st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:16px;'>ZERO Mind Statistics</p>", unsafe_allow_html=True)
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1: st.metric("Decision Memory", zero_stats.get('decision_memory_size', 0))
+        with c2: st.metric("Proxy Identities", zero_stats.get('proxy_identities', 0))
+        with c3: st.metric("Correlations", zero_stats.get('correlation_entries', 0))
+        with c4: st.metric("Embeddings", zero_stats.get('embeddings_stored', 0))
+
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+        c5, c6, c7, c8 = st.columns(4)
+        with c5: st.metric("Session Processed", zero_stats.get('session_processed', 0))
+        with c6: st.metric("Session Decisions", zero_stats.get('session_decisions', 0))
+        with c7: st.metric("New Patterns", zero_stats.get('session_new_patterns', 0))
+        with c8: st.metric("Replacement Contexts", zero_stats.get('replacement_contexts', 0))
+
+        st.markdown("<div class='sect-divider'></div>", unsafe_allow_html=True)
+
+        # Model export
+        st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:12px;'>Model Management</p>", unsafe_allow_html=True)
+
+        col_exp, _ = st.columns([1, 3])
+        with col_exp:
+            if st.button("Export ZERO Model"):
+                model_data = export_zero_model()
+                st.download_button(
+                    "Download Model JSON",
+                    data=json.dumps(model_data, indent=2, ensure_ascii=False).encode('utf-8'),
+                    file_name='zero_model_export.json',
+                    mime='application/json'
+                )
+
+        st.markdown("""
+        <div class="card" style="margin-top:16px;">
+            <p style="font-size:12px; color:rgba(255,255,255,0.4); margin:0; line-height:1.6;">
+                <strong style="color:rgba(255,255,255,0.7);">How ZERO Mind learns:</strong><br>
+                1. Every text processed feeds into correlation mapping<br>
+                2. Words that consistently appear near identity become "proxy identities"<br>
+                3. Replacement strategies are scored by structure preservation<br>
+                4. High-scoring strategies are reused, low-scoring ones decay<br>
+                5. All learning is local — no cloud, no API, no external dependency<br><br>
+                <strong style="color:rgba(255,255,255,0.7);">Privacy note:</strong> ZERO Mind memory contains no raw text — only token correlations, decision scores, and structural embeddings.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    except Exception as e:
+        st.markdown(f"<p style='color:rgba(255,255,255,0.3); font-size:13px;'>ZERO Mind not initialized. Process text first.</p>", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════
+#  TAB 4: SYSTEM
+# ══════════════════════════════════════════════════════
+with tab4:
     st.markdown("""
     <div style="padding: 24px 0 16px 0;">
         <p style="color:rgba(255,255,255,0.35); font-size:13px; margin:0;">
@@ -538,6 +660,18 @@ with tab3:
         with c4: st.metric("Total Processed", stats['total_processed'])
 
         st.markdown("<div class='sect-divider'></div>", unsafe_allow_html=True)
+
+        # ZERO Mind sub-stats
+        if 'zero_mind' in stats:
+            st.markdown("<p style='font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.3); margin-bottom:16px;'>ZERO Mind Memory</p>", unsafe_allow_html=True)
+            zm = stats['zero_mind']
+            c5, c6, c7, c8 = st.columns(4)
+            with c5: st.metric("Decisions", zm.get('decision_memory', 0))
+            with c6: st.metric("Proxies", zm.get('proxy_identities', 0))
+            with c7: st.metric("Correlations", zm.get('correlation_entries', 0))
+            with c8: st.metric("Embeddings", zm.get('embeddings', 0))
+
+            st.markdown("<div class='sect-divider'></div>", unsafe_allow_html=True)
 
         memory_path = os.path.join(os.path.dirname(__file__), 'bhrt_memory.json')
         if os.path.exists(memory_path):
@@ -573,7 +707,7 @@ with tab3:
 st.markdown("""
 <div style="text-align:center; padding:48px 0 24px 0;">
     <p style="font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,0.12); letter-spacing:0.08em;">
-        BHRT ENGINE v2.0 · J.B.S. Mandloi · Apache 2.0
+        ZERO — BHRT ENGINE v3.0 · J.B.S. Mandloi · Apache 2.0
     </p>
 </div>
 """, unsafe_allow_html=True)
